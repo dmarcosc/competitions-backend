@@ -1,22 +1,32 @@
 const express = require('express')
 const cors = require('cors')
-
+require('dotenv').config()
+require('./mongo') // Db connection
 const app = express()
-
+const usersRouter = require('./controllers/users')
 app.use(cors())
 app.use(express.json())
 
-app.get('/', (request, response) => {
-    response.send('<h1>Hello World</h1>')
+app.use('/api/users', usersRouter)
+
+//middlewares to handle errors
+app.use((request, response) => {
+    response.status(404).end()
 })
 
-app.post('/api/users', (request,response) => {
-    const user = request.body
-
-    response.status(201).json(user)
+app.use((error, request, response) => {
+    console.error(error)
+    if(error.name === 'CastError') {
+        response.status(400).end()
+    } else {
+        response.status(500).end()
+    }
 })
 
 const PORT = process.env.PORT || 3001
-app.listen(PORT, () => {
+
+const server = app.listen(PORT, () => {
 console.log(`Server running on port ${PORT}`)
 })
+
+module.exports = {app, server}
