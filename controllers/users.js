@@ -1,5 +1,6 @@
 const usersRouter = require('express').Router()
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
 usersRouter.get('/', async (request, response) => {
@@ -53,6 +54,20 @@ usersRouter.put('/:id',(request, response, next) => {
     const { id } = request.params
     const { body } = request
     const { name, secondName, birthDate, mobile, country} = body
+    const authorization = request.get('authorization')
+    let token = null
+    if (authorization && authorization.toLocaleLowerCase().startsWith('bearer')) {
+        token = authorization.substring(7)
+    }
+    let decodedToken = {}
+    try {
+        decodedToken = jwt.verify(token , process.env.APP_SECRET)
+    } catch (err) {
+        console.log(err)
+    }
+    if (!token || !decodedToken.id) {
+        return response.status(401).json({ error: 'token missing or invalid'})
+    }
 
     const newUserInfo = {
         name,
