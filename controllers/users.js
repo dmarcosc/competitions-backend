@@ -22,8 +22,8 @@ usersRouter.get('/:id', (request, response, next) => {
     })
 
 })
-
-usersRouter.post('', async (request,response, next) => {
+//Register
+usersRouter.post('', async (request,response) => {
     const { body } = request
     const {email, password, name, secondName, birthDate, mobile, country} = body
 
@@ -37,9 +37,18 @@ usersRouter.post('', async (request,response, next) => {
         mobile,
         country,
     })
-    newUser.save().then(savedUser => {
-        response.status(201).json(savedUser)
-    }).catch(err => next(err))
+    
+    const savedUser = await newUser.save()
+
+    const userForToken = {
+        id: savedUser.id 
+    }
+
+    const token = jwt.sign(userForToken, process.env.APP_SECRET)
+    response.status(201).send({
+        id: savedUser.id,
+        token
+    })
 })
 
 usersRouter.delete('/:id',(request, response, next) => {
@@ -49,7 +58,7 @@ usersRouter.delete('/:id',(request, response, next) => {
         .then(() => { response.status(204).end()})
         .catch(error => next(error))
 })
-
+//Update User
 usersRouter.put('/:id',(request, response, next) => {
     const { id } = request.params
     const { body } = request
