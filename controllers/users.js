@@ -23,10 +23,10 @@ usersRouter.get('/:id', (request, response, next) => {
 
 })
 //Register
-usersRouter.post('', async (request,response) => {
+usersRouter.post('', async (request ,response, next) => {
     const { body } = request
     const {email, password, name, secondName, birthDate, mobile, country} = body
-
+    try {
     const encryptedPass = await bcrypt.hash(password, 10)
     const newUser = new User({
         email: email,
@@ -49,6 +49,9 @@ usersRouter.post('', async (request,response) => {
         id: savedUser.id,
         token
     })
+    } catch (err) {
+        next(err)
+    }
 })
 
 usersRouter.delete('/:id',(request, response, next) => {
