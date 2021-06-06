@@ -8,17 +8,94 @@ const participationSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Contest'
     },
+    requirements: {
+        OMerit: [
+            {
+                date: Date,
+                grade: Number,
+                file: String
+            }
+        ],
+        EMerit: [
+            {
+                description: String,
+                time: Number, // meses
+                company: String
+            }
+        ],
+        PMerit: [
+            {
+            description: String,
+            file: String
+            }
+        ],
+        KMerit: [
+            {
+            date: Date,
+            grade: Number,
+            file: String
+            }
+        ]
+    },
     skills: {
-        OMerit: [String],
-        EMerit: [String],
-        PMerit:  [String],
-        KMerit: [String]
+        OMerit: [
+            {
+                date: Date,
+                grade: Number,
+                file: String
+            }
+        ],
+        EMerit: [
+            {
+                description: String,
+                time: Number, // meses
+                company: String
+            }
+        ],
+        PMerit: [
+            {
+            description: String,
+            file: String
+            }
+        ],
+        KMerit: [
+            {
+            date: Date,
+            grade: Number,
+            file: String
+            }
+        ]
     },
     extra: {
-        OMerit: [String],
-        EMerit: [String],
-        PMerit:  [String],
-        KMerit: [String]
+        OMerit: [
+            {
+                title: String,
+                date: Date,
+                grade: Number,
+                file: String
+            }
+        ],
+        EMerit: [
+            {
+                description: String,
+                time: Number, // meses
+                company: String
+            }
+        ],
+        PMerit: [
+            {
+            description: String,
+            file: String
+            }
+        ],
+        KMerit: [
+            {
+            title: String,
+            date: Date,
+            grade: Number,
+            file: String
+            }
+        ]
     },
     score: Number
 })

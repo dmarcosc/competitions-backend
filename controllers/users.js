@@ -1,11 +1,10 @@
 const usersRouter = require('express').Router()
 const bcrypt = require('bcrypt')
-const User = require('../models/user')
+const User = require('../models/User')
 
-usersRouter.get('/', (request, response) => {
-    User.find({}).then(users => {
-        response.json(users)
-    })
+usersRouter.get('/', async (request, response) => {
+    const users = await User.find({})
+    response.json(users)
 })
 
 usersRouter.get('/:id', (request, response, next) => {
@@ -53,17 +52,15 @@ usersRouter.delete('/:id',(request, response, next) => {
 usersRouter.put('/:id',(request, response, next) => {
     const { id } = request.params
     const { body } = request
-    const {email, password, name, secondName, birthDate, mobile, country} = body
+    const { name, secondName, birthDate, mobile, country} = body
 
-    const newUserInfo = new User({
-        email,
-        password: password,
+    const newUserInfo = {
         name,
         secondName,
         birthDate,
         mobile,
         country,
-    })
+    }
     User.findByIdAndUpdate(id, newUserInfo, { new: true })
     .then(result => {
         response.json(result)

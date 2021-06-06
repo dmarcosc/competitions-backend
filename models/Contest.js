@@ -11,16 +11,40 @@ const contestSchema = new Schema({
     vacancies: Number,
     description: String,
     requirements: {
-        OMerit: [String],
-        EMerit: [String],
-        PMerit:  [String],
-        KMerit: [String]
+        OMerit: [{
+            title: String,
+            description: String
+        }],
+        EMerit: [{
+            title: String,
+            description: String
+        }],
+        PMerit:  [{
+            title: String,
+            description: String
+        }],
+        KMerit: [{
+            title: String,
+            description: String
+        }],
     },
     skills: {
-        OMerit: [String],
-        EMerit: [String],
-        PMerit:  [String],
-        KMerit: [String]
+        OMerit: [{
+            title: String,
+            description: String
+        }],
+        EMerit: [{
+            title: String,
+            description: String
+        }],
+        PMerit:  [{
+            title: String,
+            description: String
+        }],
+        KMerit: [{
+            title: String,
+            description: String
+        }],
     },
     extra: {
         OMerit: Number,
