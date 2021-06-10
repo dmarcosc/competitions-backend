@@ -38,7 +38,7 @@ usersRouter.get('/userInfo', (request, response, next) => {
 
 })
 //Register
-usersRouter.post('', async (request ,response, next) => {
+usersRouter.post('/', async (request ,response, next) => {
     const { body } = request
     const {email, password, name, secondName, birthDate, mobile, country} = body
     try {
