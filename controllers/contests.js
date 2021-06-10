@@ -23,7 +23,7 @@ contestsRouter.get('/', async (request, response) => {
     response.json(contests)
 })
 
-contestsRouter.get('/:id', (request, response, next) => {
+contestsRouter.get('/:id', async (request, response, next) => {
     const id = request.params.id
     const authorization = request.get('authorization')
     let token = null
@@ -52,7 +52,7 @@ contestsRouter.get('/:id', (request, response, next) => {
 
 })
 
-contestsRouter.get('/createdBy/:id', (request, response, next) => {
+contestsRouter.get('/createdBy/:id', async (request, response, next) => {
     const id = request.params.id
     const authorization = request.get('authorization')
     let token = null
@@ -69,15 +69,24 @@ contestsRouter.get('/createdBy/:id', (request, response, next) => {
         return response.status(401).json({ error: 'token missing or invalid'})
     }
 
-    Contest.find({ creator :id }).then(contest => {
-        if(contest) {
-            return response.json(contest)
-        } else {
+    try {
+    const createdContests = await Contest.find({ creator :id },
+        {
+            id: 1,
+            name: 1,
+            field: 1,
+            dueDate:1
+        })
+    if(createdContests) {
+        return response.status(200).json(createdContests)
+    } else {
             response.status(404).end()
-        }
-    }).catch(err => {
+    }
+    } catch (err) {
         next(err)
-    })
+    }
+    
+    
 })
 // create contest process
 contestsRouter.post('', async (request,response, next) => {
@@ -97,6 +106,8 @@ contestsRouter.post('', async (request,response, next) => {
     if (!token || !decodedToken.id) {
         return response.status(401).json({ error: 'token missing or invalid'})
     }
+
+    try {
     const newContest = new Contest({
         creator: decodedToken.id,
         name,
@@ -110,9 +121,15 @@ contestsRouter.post('', async (request,response, next) => {
         extra,
         participations
     })
-    newContest.save().then(savedContest => {
-        response.status(201).json(savedContest)
-    }).catch(err => next(err))
+    const savedContest = await newContest.save()
+    response.status(201).send({
+        id: savedContest.id,
+        code: 'OK',
+        message: 'Contest creation succesful'
+    })
+    } catch (err) {
+        next(err)
+    }
 })
 // adds a participation to de contest, apply process
 contestsRouter.put('/:id', async (request, response, next) => {
@@ -143,21 +160,24 @@ contestsRouter.put('/:id', async (request, response, next) => {
 
     try {
     const score = await calculateScore(id, request.body)
-    console.log(score)
     newParticipation.score = score
     const savedParticipation = await newParticipation.save()
     const contest = await Contest.findById(id)
     contest.participations = contest.participations.concat(savedParticipation._id)
     await contest.save()
 
-    response.status(200).json(savedParticipation)
+    response.status(201).send({
+        score: savedParticipation.score,
+        code: 'OK',
+        message: 'Participation process succesful'
+    })
 
     } catch (err){
         next(err)
     } 
 })
 // shows all contests the given user participated in
-contestsRouter.get('/participations/:id', (request, response, next) => {
+contestsRouter.get('/participations/:id', async (request, response, next) => {
     const id = request.params.id
     const authorization = request.get('authorization')
     let token = null
@@ -174,20 +194,31 @@ contestsRouter.get('/participations/:id', (request, response, next) => {
         return response.status(401).json({ error: 'token missing or invalid'})
     }
 
-    Participation.find({ user :id }).populate('contest',{
+    try {
+    const contestApplied = await Participation.find({ user :id },{
+        contest: 1
+    }).populate('contest',{
         name: 1,
         dueDate: 1,
         field: 1
-    } ).then(participation => {
-        if(participation) {
-        return response.json(participation)
-        }
-        else {
-            response.status(404).end()
-        }
-    }).catch(err => {
-        next(err)
     })
+
+    if(contestApplied) {
+        // response.status(201).send({
+        //     id: contestApplied.contest.id,
+        //     name: contestApplied.contest.name,
+        //     field: contestApplied.contest.field,
+        //     dueDate: contestApplied.contest.dueDate,
+        //     code: 'OK',
+        //     message: 'Contests list applied not empty'
+        // })
+        return response.status(200).json(contestApplied)
+    } else {
+            response.status(404).end()
+    }
+    } catch (err) {
+        next(err)
+    }
 
 })
 // contest detail
@@ -208,7 +239,7 @@ contestsRouter.get('/detail/:id', async (request, response, next) => {
         return response.status(401).json({ error: 'token missing or invalid'})
     }
     try {
-        const contests = await Contest.findById(id).populate({
+        const contests = await Contest.findById(id,{participations: 1, vacancies: 1}).populate({
             path: 'participations',
             populate:{
                 path: 'user',
@@ -216,7 +247,7 @@ contestsRouter.get('/detail/:id', async (request, response, next) => {
             },
             select: 'score'
         })
-        return response.json(contests)   
+        return response.status(200).json(contests)
     } catch(err){
         next(err)
     }

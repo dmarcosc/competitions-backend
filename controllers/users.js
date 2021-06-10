@@ -8,10 +8,25 @@ usersRouter.get('/', async (request, response) => {
     response.json(users)
 })
 
-usersRouter.get('/:id', (request, response, next) => {
-    const id = request.params.id
+//getUserInfo
+usersRouter.get('/userInfo', (request, response, next) => {
 
-    User.findById(id).then(user => {
+    const authorization = request.get('authorization')
+    let token = null
+    if (authorization && authorization.toLocaleLowerCase().startsWith('bearer')) {
+        token = authorization.substring(7)
+    }
+    let decodedToken = {}
+    try {
+        decodedToken = jwt.verify(token , process.env.APP_SECRET)
+    } catch (err) {
+        console.log(err)
+    }
+    if (!token || !decodedToken.id) {
+        return response.status(401).json({ error: 'token missing or invalid'})
+    }
+
+    User.findById(decodedToken.id).then(user => {
         if(user) {
             return response.json(user)
         } else {
@@ -47,6 +62,8 @@ usersRouter.post('', async (request ,response, next) => {
     const token = jwt.sign(userForToken, process.env.APP_SECRET)
     response.status(201).send({
         id: savedUser.id,
+        code: 'OK',
+        message: 'Register succesful',
         token
     })
     } catch (err) {
@@ -62,8 +79,7 @@ usersRouter.delete('/:id',(request, response, next) => {
         .catch(error => next(error))
 })
 //Update User
-usersRouter.put('/:id',(request, response, next) => {
-    const { id } = request.params
+usersRouter.put('/updateUser', async (request, response, next) => {
     const { body } = request
     const { name, secondName, birthDate, mobile, country} = body
     const authorization = request.get('authorization')
@@ -80,7 +96,7 @@ usersRouter.put('/:id',(request, response, next) => {
     if (!token || !decodedToken.id) {
         return response.status(401).json({ error: 'token missing or invalid'})
     }
-
+    try  {
     const newUserInfo = {
         name,
         secondName,
@@ -88,10 +104,15 @@ usersRouter.put('/:id',(request, response, next) => {
         mobile,
         country,
     }
-    User.findByIdAndUpdate(id, newUserInfo, { new: true })
-    .then(result => {
-        response.json(result)
-    }).catch(error => next(error))
+    await User.findByIdAndUpdate(decodedToken.id, newUserInfo, { new: true })
+
+    response.status(201).send({
+        code: 'OK',
+        message: 'User succesfully updated'
+    })
+    } catch (err) {
+        next(err)
+    }
 })
 
 module.exports = usersRouter

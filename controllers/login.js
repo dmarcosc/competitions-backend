@@ -25,6 +25,8 @@ loginRouter.post('/', async(request, response) => {
 
     response.send({
         id: user.id,
+        code: 'OK',
+        message: 'Login succesful',
         token
     })
 })
