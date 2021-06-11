@@ -23,35 +23,6 @@ contestsRouter.get('/', async (request, response) => {
     response.json(contests)
 })
 
-contestsRouter.get('/:id', async (request, response, next) => {
-    const id = request.params.id
-    const authorization = request.get('authorization')
-    let token = null
-    if (authorization && authorization.toLocaleLowerCase().startsWith('bearer')) {
-        token = authorization.substring(7)
-    }
-    let decodedToken = {}
-    try {
-        decodedToken = jwt.verify(token , process.env.APP_SECRET)
-    } catch (err) {
-        console.log(err)
-    }
-    if (!token || !decodedToken.id) {
-        return response.status(401).json({ error: 'token missing or invalid'})
-    }
-
-    Contest.findById(id).then(contest => {
-        if(contest) {
-            return response.json(contest)
-        } else {
-            response.status(404).end()
-        }
-    }).catch(err => {
-        next(err)
-    })
-
-})
-
 contestsRouter.get('/createdBy', async (request, response, next) => {
     const authorization = request.get('authorization')
     let token = null
@@ -67,7 +38,6 @@ contestsRouter.get('/createdBy', async (request, response, next) => {
     if (!token || !decodedToken.id) {
         return response.status(401).json({ error: 'token missing or invalid'})
     }
-
     try {
     const createdContests = await Contest.find({ creator: decodedToken.id },
         {
@@ -250,7 +220,34 @@ contestsRouter.get('/detail/:id', async (request, response, next) => {
         next(err)
     }
 })
+contestsRouter.get('/:id', async (request, response, next) => {
+    const id = request.params.id
+    const authorization = request.get('authorization')
+    let token = null
+    if (authorization && authorization.toLocaleLowerCase().startsWith('bearer')) {
+        token = authorization.substring(7)
+    }
+    let decodedToken = {}
+    try {
+        decodedToken = jwt.verify(token , process.env.APP_SECRET)
+    } catch (err) {
+        console.log(err)
+    }
+    if (!token || !decodedToken.id) {
+        return response.status(401).json({ error: 'token missing or invalid'})
+    }
 
+    Contest.findById(id).then(contest => {
+        if(contest) {
+            return response.json(contest)
+        } else {
+            response.status(404).end()
+        }
+    }).catch(err => {
+        next(err)
+    })
+
+})
 const calculateScore = async (id, participation) => {
     
     const contest = await Contest.findById(id)
