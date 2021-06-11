@@ -69,7 +69,7 @@ contestsRouter.get('/createdBy', async (request, response, next) => {
     }
 
     try {
-    const createdContests = await Contest.find({ creator :decodedToken.id },
+    const createdContests = await Contest.find({ creator: decodedToken.id },
         {
             id: 1,
             name: 1,
