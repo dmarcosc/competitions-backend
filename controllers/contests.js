@@ -52,8 +52,7 @@ contestsRouter.get('/:id', async (request, response, next) => {
 
 })
 
-contestsRouter.get('/createdBy/:id', async (request, response, next) => {
-    const id = request.params.id
+contestsRouter.get('/createdBy', async (request, response, next) => {
     const authorization = request.get('authorization')
     let token = null
     if (authorization && authorization.toLocaleLowerCase().startsWith('bearer')) {
@@ -70,7 +69,7 @@ contestsRouter.get('/createdBy/:id', async (request, response, next) => {
     }
 
     try {
-    const createdContests = await Contest.find({ creator :id },
+    const createdContests = await Contest.find({ creator :decodedToken.id },
         {
             id: 1,
             name: 1,
@@ -177,8 +176,7 @@ contestsRouter.put('/:id', async (request, response, next) => {
     } 
 })
 // shows all contests the given user participated in
-contestsRouter.get('/participations/:id', async (request, response, next) => {
-    const id = request.params.id
+contestsRouter.get('/participations', async (request, response, next) => {
     const authorization = request.get('authorization')
     let token = null
     if (authorization && authorization.toLocaleLowerCase().startsWith('bearer')) {
@@ -195,7 +193,7 @@ contestsRouter.get('/participations/:id', async (request, response, next) => {
     }
 
     try {
-    const contestApplied = await Participation.find({ user :id },{
+    const contestApplied = await Participation.find({ user :decodedToken.id },{
         contest: 1
     }).populate('contest',{
         name: 1,
