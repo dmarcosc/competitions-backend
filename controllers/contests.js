@@ -250,15 +250,17 @@ contestsRouter.get('/:id', async (request, response, next) => {
 const calculateScore = async (participation) => {
     
     const contest = await Contest.findById(participation.contest)
-    let score = 10
+    let score = 9
     const diff = ((contest.skills.OMerit.length + contest.skills.EMerit.length + contest.skills.PMerit.length + contest.skills.KMerit.length) 
     - (participation.skills.OMerit.length + participation.skills.EMerit.length + participation.skills.PMerit.length + participation.skills.KMerit.length))
-    score = score - diff*2
+    score = score - diff
     const extraO = participation.extra.OMerit[0] ? (contest.extra.OMerit * .01) * participation.extra.OMerit.length : 0
     const extraE = participation.extra.EMerit[0] ? (contest.extra.EMerit * .01) * participation.extra.EMerit.length : 0
     const extraP = participation.extra.PMerit[0] ? (contest.extra.PMerit * .01) * participation.extra.PMerit.length : 0
     const extraK = participation.extra.KMerit[0] ? (contest.extra.KMerit * .01) * participation.extra.KMerit.length : 0
-    score = score +  extraO + extraE +extraP + extraK
+    let extra = extraO + extraE +extraP + extraK
+    if (extra > 1.5) extra = 1.5
+    score = score + extra
 
     if (score < 4) score = 4
     if (score > 10) score = 10
