@@ -253,7 +253,7 @@ const calculateScore = async (participation) => {
     let score = 10
     const diff = ((contest.skills.OMerit.length + contest.skills.EMerit.length + contest.skills.PMerit.length + contest.skills.KMerit.length) 
     - (participation.skills.OMerit.length + participation.skills.EMerit.length + participation.skills.PMerit.length + participation.skills.KMerit.length))
-    score = score - diff
+    score = score - diff*2
     const extraO = participation.extra.OMerit[0] ? (contest.extra.OMerit * .01) * participation.extra.OMerit.length : 0
     const extraE = participation.extra.EMerit[0] ? (contest.extra.EMerit * .01) * participation.extra.EMerit.length : 0
     const extraP = participation.extra.PMerit[0] ? (contest.extra.PMerit * .01) * participation.extra.PMerit.length : 0
