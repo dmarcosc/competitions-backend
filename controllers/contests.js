@@ -101,8 +101,7 @@ contestsRouter.post('', async (request,response, next) => {
     }
 })
 // adds a participation to de contest, apply process
-contestsRouter.put('/:id', async (request, response, next) => {
-    const { id } = request.params
+contestsRouter.put('', async (request, response, next) => {
     const { body } = request
     const authorization = request.get('authorization')
     let token = null
@@ -120,18 +119,18 @@ contestsRouter.put('/:id', async (request, response, next) => {
     }
 
     const newParticipation = new Participation ({
-        user: body.user,
-        contest: id,
+        user: decodedToken.id,
+        contest: body.contest,
         requirements: body.requirements,
         skills: body.skills,
         extra: body.extra
     })
 
     try {
-    const score = await calculateScore(id, request.body)
+    const score = await calculateScore(request.body)
     newParticipation.score = score
     const savedParticipation = await newParticipation.save()
-    const contest = await Contest.findById(id)
+    const contest = await Contest.findById(body.contest)
     contest.participations = contest.participations.concat(savedParticipation._id)
     await contest.save()
 
@@ -248,9 +247,9 @@ contestsRouter.get('/:id', async (request, response, next) => {
     })
 
 })
-const calculateScore = async (id, participation) => {
+const calculateScore = async (participation) => {
     
-    const contest = await Contest.findById(id)
+    const contest = await Contest.findById(participation.contest)
     let score = 10
     const diff = ((contest.skills.OMerit.length + contest.skills.EMerit.length + contest.skills.PMerit.length + contest.skills.KMerit.length) 
     - (participation.skills.OMerit.length + participation.skills.EMerit.length + participation.skills.PMerit.length + participation.skills.KMerit.length))
