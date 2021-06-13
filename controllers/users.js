@@ -1,6 +1,7 @@
 const usersRouter = require('express').Router()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const {OAuth2Client} = require('google-auth-library');
 const User = require('../models/User')
 
 usersRouter.get('/', async (request, response) => {
@@ -36,6 +37,46 @@ usersRouter.get('/userInfo', (request, response, next) => {
         next(err)
     })
 
+})
+//Register Google
+usersRouter.post('/google', async (request, response, next) => {
+    const { body } = request
+    const { idToken } = body
+    const client = new OAuth2Client('126258924188-amosth6ihfeljmmrc0jf7o199310oini.apps.googleusercontent.com');
+    const ticket = await client.verifyIdToken({
+        idToken: idToken,
+        audience: '126258924188-amosth6ihfeljmmrc0jf7o199310oini.apps.googleusercontent.com',
+    });
+    const payload = ticket.getPayload();
+    const email = payload['email'];
+    const name = payload['given_name'];
+    const secondName = payload['family_name'];
+    const password = payload['sub'];
+    try {
+    const encryptedPass = await bcrypt.hash(password, 10)
+    const newUser = new User({
+        email,
+        password: encryptedPass,
+        name,
+        secondName
+    })
+    
+    const savedUser = await newUser.save()
+
+    const userForToken = {
+        id: savedUser.id 
+    }
+
+    const token = jwt.sign(userForToken, process.env.APP_SECRET)
+    response.status(201).send({
+        id: savedUser.id,
+        code: 'OK',
+        message: 'Register succesful',
+        token
+    })
+    } catch (err) {
+        next(err)
+    }
 })
 //Register
 usersRouter.post('/', async (request ,response, next) => {
